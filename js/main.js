@@ -1,5 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  /* --- Disable right-click & drag on images --- */
+  document.addEventListener('contextmenu', (e) => {
+    if (e.target.tagName === 'IMG') e.preventDefault();
+  });
+  document.addEventListener('dragstart', (e) => {
+    if (e.target.tagName === 'IMG') e.preventDefault();
+  });
+
   /* --- Hamburger / Dropdown Nav --- */
   const hamburger = document.querySelector('.hamburger');
   const dropdown = document.querySelector('.nav-dropdown');
