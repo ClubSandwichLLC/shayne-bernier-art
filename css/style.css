@@ -373,4 +373,12 @@ html, body {
     font-size: 0.78rem;
     padding: 0.3rem 0;
   }
+
+  .site-footer {
+    max-width: 90vw;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.48rem;
+    bottom: 0.3rem;
+  }
 }
