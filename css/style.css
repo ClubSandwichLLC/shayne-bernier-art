@@ -323,6 +323,23 @@ html, body {
 }
 
 /* ============================================
+   COPYRIGHT FOOTER — outside the frame
+   ============================================ */
+.site-footer {
+  position: fixed;
+  bottom: 0.5rem;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+  color: #999;
+  z-index: 0;
+}
+
+/* ============================================
    RESPONSIVE — mobile goes portrait
    ============================================ */
 @media (max-width: 700px) {
