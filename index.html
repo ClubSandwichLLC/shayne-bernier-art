@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shayne R Bernier</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <main class="page-frame">
+    <div class="frame-container">
+
+      <!-- Hand-drawn frame -->
+      <svg class="frame-svg" viewBox="0 0 800 500" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="
+          M 16 12
+          C 24 7, 100 10, 220 9
+          C 350 8, 550 11, 680 10
+          C 740 9, 780 10, 786 15
+          C 792 22, 790 70, 791 150
+          C 792 240, 789 350, 790 420
+          C 791 460, 793 482, 787 490
+          C 781 498, 720 493, 600 492
+          C 440 491, 200 494, 80 492
+          C 40 491, 18 490, 13 484
+          C 7 476, 9 400, 8 310
+          C 7 220, 10 100, 9 55
+          C 8 30, 11 16, 16 12
+          Z
+        " stroke="#111" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+          style="filter: url(#rough)"/>
+        <defs>
+          <filter id="rough">
+            <feTurbulence type="turbulence" baseFrequency="0.012" numOctaves="3" result="noise" seed="2"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+        </defs>
+      </svg>
+
+      <!-- Nav (inside frame) -->
+      <div class="nav-area">
+        <button class="hamburger" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="nav-dropdown">
+          <a href="index.html">Home</a>
+          <a href="works.html">Works</a>
+          <a href="contact.html">Enquire</a>
+        </nav>
+      </div>
+
+      <!-- Content -->
+      <div class="frame-content">
+        <div class="landing-inner">
+          <h1 class="artist-name">Shayne R Bernier</h1>
+          <p class="artist-statement">
+            A multi-disciplinary artist exploring the complexities of our relationships with one another and the world &mdash; and how we organize these relationships to shape our individual and collective ideas of Home.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

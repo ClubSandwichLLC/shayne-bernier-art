@@ -1,0 +1,358 @@
+/* ============================================
+   Shayne R Bernier — Artist Portfolio
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&family=Schoolbell&display=swap');
+
+/* --- Reset & Base --- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  color: #111;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ============================================
+   FRAME — shared across all pages
+   ============================================ */
+.page-frame {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.frame-container {
+  position: relative;
+  width: 92vw;
+  height: 90vh;
+  height: 90dvh;
+}
+
+.frame-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.frame-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 5% 6% 5% 6%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollable inner area for works page */
+.frame-content.scrollable {
+  overflow: hidden;
+}
+
+.frame-content.scrollable .frame-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.frame-content.scrollable .frame-scroll-area::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   HAMBURGER — inside frame, top right
+   ============================================ */
+.nav-area {
+  position: absolute;
+  top: 5%;
+  right: 6%;
+  z-index: 10;
+}
+
+.hamburger {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 6px;
+}
+
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 1px;
+  background: #111;
+  transition: all 0.3s ease;
+}
+
+.hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translate(4px, 4px);
+}
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.open span:nth-child(3) {
+  transform: rotate(-45deg) translate(4px, -4px);
+}
+
+/* --- Dropdown Nav (right under hamburger) --- */
+.nav-dropdown {
+  margin-top: 1rem;
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.nav-dropdown.open {
+  display: flex;
+}
+
+.nav-dropdown a {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: #111;
+  text-decoration: none;
+  padding: 0.35rem 0;
+  transition: opacity 0.2s;
+}
+
+.nav-dropdown a:hover {
+  opacity: 0.45;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+.artist-name {
+  font-family: 'Schoolbell', cursive;
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  line-height: 1.15;
+  margin-bottom: 0.8em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artist-statement {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
+  font-size: clamp(0.72rem, 1.3vw, 0.92rem);
+  line-height: 1.7;
+  max-width: 38ch;
+  letter-spacing: 0.01em;
+  margin-left: 2.5em;
+}
+
+.page-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
+  font-size: clamp(0.75rem, 1.4vw, 0.95rem);
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+}
+
+/* ============================================
+   LANDING PAGE
+   ============================================ */
+.landing-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding-right: 40%;
+}
+
+/* ============================================
+   WORKS PAGE — mood board
+   ============================================ */
+.works-header {
+  flex-shrink: 0;
+  margin-bottom: 0.5rem;
+}
+
+.mood-board {
+  position: relative;
+  width: 100%;
+}
+
+.mood-board .work-item {
+  position: absolute;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.mood-board .work-item:hover {
+  z-index: 100 !important;
+  transform: scale(1.03) !important;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+}
+
+.mood-board .work-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.lightbox.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.lightbox img {
+  max-width: 85vw;
+  max-height: 85vh;
+  object-fit: contain;
+}
+
+/* ============================================
+   CONTACT / ENQUIRE PAGE
+   ============================================ */
+.contact-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.contact-form {
+  margin-top: 1.5rem;
+  max-width: 400px;
+}
+
+.form-field {
+  margin-bottom: 1.8rem;
+}
+
+.form-field label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #111;
+  background: transparent;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
+  font-size: 0.88rem;
+  padding: 0.5rem 0;
+  outline: none;
+  color: #111;
+  border-radius: 0;
+  -webkit-appearance: none;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  border-bottom-color: #666;
+}
+
+.form-field textarea {
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.5;
+}
+
+.submit-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #111;
+  padding: 0.4rem 0;
+  cursor: pointer;
+  color: #111;
+  transition: opacity 0.2s;
+}
+
+.submit-btn:hover {
+  opacity: 0.5;
+}
+
+/* ============================================
+   RESPONSIVE — mobile goes portrait
+   ============================================ */
+@media (max-width: 700px) {
+  .frame-container {
+    width: 94vw;
+    height: 92vh;
+    height: 92dvh;
+  }
+
+  .frame-content {
+    padding: 8% 6% 6% 6%;
+  }
+
+  .nav-area {
+    top: 8%;
+    right: 6%;
+  }
+
+  .landing-inner {
+    padding-right: 10%;
+    justify-content: flex-start;
+    padding-top: 15%;
+  }
+
+  .artist-statement {
+    margin-left: 1.2em;
+  }
+
+  .nav-dropdown a {
+    font-size: 0.78rem;
+    padding: 0.3rem 0;
+  }
+}
