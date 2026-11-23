@@ -15,6 +15,13 @@
     return;
   }
 
+  /* ---------- Drop date line, built from data-drop-at so it can't drift ---------- */
+  const when = new Date(dropAt);
+  const tz = 'America/Chicago';
+  const day = when.toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' });
+  const time = when.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' }).replace(' AM', ' am').replace(' PM', ' pm');
+  root.querySelector('.drop-when').innerHTML = `Flavors drop ${day} <span class="nowrap">at ${time} CT</span>`;
+
   /* ---------- Countdown ---------- */
   const pad = n => String(n).padStart(2, '0');
   const els = { h: root.querySelector('[data-u="h"]'), m: root.querySelector('[data-u="m"]'), s: root.querySelector('[data-u="s"]') };
