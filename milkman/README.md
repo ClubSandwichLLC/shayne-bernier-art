@@ -8,7 +8,7 @@ address, email and phone).
 - `index.html`, `style.css`, `app.js` — the page (IBM Plex Mono + Schoolbell, same as shaynebernier.com)
 - `api/subscribe.js` — saves a phone sign-up as a Stripe Customer tagged `milkman_sms=yes` with the consent wording, time and IP
 - `api/checkout.js` — creates the Stripe Checkout Session; refuses orders before the drop time
-- `logo.png` — **add the Milkman logo here** (until then the page shows "Milkman" in Schoolbell)
+- `logo.png` — the Milkman logo, recolored dark blue (#1f3a6b) on a transparent background
 
 ## Go live (Vercel)
 
