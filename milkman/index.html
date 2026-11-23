@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Milkman</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&family=Schoolbell&display=swap">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!--
+    The drop moment. Change it here and in DROP_AT on the server (lib/config.js) together.
+    2026-11-24 09:00 Central (CST, UTC-6) = 15:00 UTC.
+  -->
+  <main class="milkman" data-drop-at="2026-11-24T15:00:00Z">
+
+    <h1 class="logo">
+      <img src="/logo.png" alt="Milkman" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-text',textContent:'Milkman'}))">
+    </h1>
+
+    <!-- Before the drop -->
+    <section class="before" hidden>
+      <div class="countdown" aria-live="off" aria-label="Time until the drop">
+        <span class="unit"><span class="num" data-u="h">00</span><span class="lbl">hrs</span></span>
+        <span class="sep">:</span>
+        <span class="unit"><span class="num" data-u="m">00</span><span class="lbl">min</span></span>
+        <span class="sep">:</span>
+        <span class="unit"><span class="num" data-u="s">00</span><span class="lbl">sec</span></span>
+      </div>
+
+      <form class="notify" novalidate>
+        <label for="phone" class="notify-label">Text me when it drops</label>
+        <div class="notify-row">
+          <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-5555" required>
+          <button type="submit" class="text-btn">Notify me</button>
+        </div>
+        <p class="fine">One text when the flavors drop. Msg &amp; data rates may apply. Reply STOP to opt out.</p>
+        <p class="status" role="status"></p>
+      </form>
+    </section>
+
+    <!-- After the drop -->
+    <section class="after" hidden>
+      <ul class="flavors">
+        <li class="flavor" data-flavor="apple_cider_brown_butter">
+          <span class="flavor-name">Apple Cider Brown Butter</span>
+          <span class="qty">
+            <button type="button" class="chev" data-step="-1" aria-label="Fewer Apple Cider Brown Butter">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="qty-num" aria-live="polite">0</span>
+            <button type="button" class="chev" data-step="1" aria-label="More Apple Cider Brown Butter">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </span>
+        </li>
+        <li class="flavor" data-flavor="sage_cranberry">
+          <span class="flavor-name">Sage Cranberry</span>
+          <span class="qty">
+            <button type="button" class="chev" data-step="-1" aria-label="Fewer Sage Cranberry">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="qty-num" aria-live="polite">0</span>
+            <button type="button" class="chev" data-step="1" aria-label="More Sage Cranberry">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </span>
+        </li>
+      </ul>
+
+      <button type="button" class="checkout" disabled>Checkout</button>
+      <p class="status checkout-status" role="status"></p>
+    </section>
+
+    <!-- After a successful payment (?order=success) -->
+    <section class="thanks" hidden>
+      <p class="thanks-line">Thank you. Your order is in &mdash; a receipt is on its way to your email.</p>
+    </section>
+
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

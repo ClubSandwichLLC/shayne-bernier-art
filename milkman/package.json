@@ -1,0 +1,6 @@
+{
+  "name": "milkman",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" }
+}
