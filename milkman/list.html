@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Milkman sign-ups</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fff; color: #111; font-family: 'IBM Plex Mono', monospace; font-weight: 300; font-size: 15px; -webkit-font-smoothing: antialiased; }
+    main { max-width: 480px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-weight: 400; font-size: 1rem; letter-spacing: 0.04em; margin-bottom: 24px; }
+    input, textarea { width: 100%; font: inherit; font-size: 16px; color: #111; background: transparent; border: 0; border-bottom: 1px solid #111; outline: 0; padding: 6px 0; }
+    textarea { border: 1px solid #111; padding: 10px; resize: vertical; min-height: 96px; line-height: 1.5; }
+    button { background: none; border: 0; font: inherit; color: #111; cursor: pointer; padding: 8px 0; }
+    button:hover { opacity: 0.45; }
+    .row { display: flex; gap: 14px; align-items: baseline; }
+    .label { display: block; font-size: 0.74rem; opacity: 0.6; margin: 24px 0 8px; letter-spacing: 0.04em; }
+    .status { font-size: 0.8rem; margin-top: 12px; min-height: 1.4em; }
+    ol { list-style: none; margin-top: 12px; }
+    li { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; font-variant-numeric: tabular-nums; }
+    li a { color: #111; text-decoration: none; font-weight: 400; }
+    li.sent { opacity: 0.35; }
+    .tip { font-size: 0.72rem; line-height: 1.6; opacity: 0.6; margin-top: 16px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Milkman sign-ups</h1>
+
+  <form class="login">
+    <div class="row">
+      <input type="password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit">Open</button>
+    </div>
+    <p class="status"></p>
+  </form>
+
+  <section class="list" hidden>
+    <label class="label" for="msg">Message</label>
+    <textarea id="msg">Milkman flavors have dropped: Apple Cider Brown Butter and Sage Cranberry. milkman.shaynebernier.com — Reply STOP to opt out.</textarea>
+
+    <span class="label count"></span>
+    <button type="button" class="copy">Copy all numbers</button>
+    <ol></ol>
+    <p class="tip">Tap “Text” to open a message to that one person with the text filled in. Send them one at a time — never as a group text, which shows everyone's number to everyone. Rows grey out once tapped.</p>
+  </section>
+</main>
+<script>
+(() => {
+  const login = document.querySelector('.login');
+  const status = login.querySelector('.status');
+  const list = document.querySelector('.list');
+  const ol = list.querySelector('ol');
+  const msg = document.getElementById('msg');
+  let numbers = [];
+  const pretty = p => p.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '($1) $2-$3');
+
+  function render() {
+    ol.innerHTML = '';
+    numbers.forEach(p => {
+      const li = document.createElement('li');
+      const num = document.createElement('span');
+      num.textContent = pretty(p);
+      const a = document.createElement('a');
+      a.textContent = 'Text';
+      a.href = `sms:${p}?&body=${encodeURIComponent(msg.value)}`;
+      a.addEventListener('click', () => li.classList.add('sent'));
+      li.append(num, a);
+      ol.append(li);
+    });
+    list.querySelector('.count').textContent = `${numbers.length} ${numbers.length === 1 ? 'person' : 'people'}`;
+  }
+  msg.addEventListener('input', () => ol.querySelectorAll('a').forEach((a, i) => { a.href = `sms:${numbers[i]}?&body=${encodeURIComponent(msg.value)}`; }));
+
+  login.addEventListener('submit', async e => {
+    e.preventDefault();
+    status.textContent = 'Loading…';
+    const res = await fetch('/api/signups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: login.querySelector('input').value }) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { status.textContent = data.error || 'Something went wrong.'; return; }
+    numbers = data.signups.map(s => s.phone);
+    login.hidden = true; list.hidden = false;
+    render();
+  });
+
+  list.querySelector('.copy').addEventListener('click', async e => {
+    await navigator.clipboard.writeText(numbers.join('\n'));
+    e.target.textContent = 'Copied';
+    setTimeout(() => e.target.textContent = 'Copy all numbers', 1500);
+  });
+})();
+</script>
+</body>
+</html>

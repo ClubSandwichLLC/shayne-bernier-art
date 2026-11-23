@@ -27,4 +27,6 @@ Change `data-drop-at` in `index.html` **and** `MILKMAN_DROP_AT` (env var or `lib
 
 ## Sign-up list
 
-Stripe → Customers → search `metadata['milkman_sms']:'yes'`. The 9 am text (Twilio) is not wired yet.
+`/list.html` (password = Vercel env var `MILKMAN_ADMIN_KEY`) lists every text sign-up with a one-tap
+"Text" link that opens a message with the drop text filled in. Until a Twilio number is registered
+(toll-free verification or A2P 10DLC), drop texts are sent by hand from this page.
