@@ -16,16 +16,15 @@ export default async function handler(req, res) {
     const q = Number(items[key] || 0);
     if (!Number.isInteger(q) || q < 0 || q > MAX_EACH) return res.status(400).json({ error: 'Invalid quantity.' });
     if (q === 0) continue;
-    const price = process.env[flavor.priceEnv];
-    if (!price) {
-      console.error(`[checkout] ${flavor.priceEnv} is not set`);
-      return res.status(500).json({ error: 'Checkout is not set up yet.' });
-    }
-    line_items.push({ price, quantity: q });
+    line_items.push({ id: flavor.stripeId, quantity: q });
   }
   if (!line_items.length) return res.status(400).json({ error: 'Pick at least one.' });
 
   try {
+    for (const item of line_items) {
+      item.price = await resolvePrice(item.id);
+      delete item.id;
+    }
     const session = await stripe('POST', 'checkout/sessions', {
       mode: 'payment',
       line_items,
@@ -42,4 +41,16 @@ export default async function handler(req, res) {
     console.error('[checkout]', err.message);
     return res.status(500).json({ error: 'Checkout is unavailable right now. Try again in a moment.' });
   }
+}
+
+// A product ID resolves to that product's default price; a price ID is used as is.
+const priceCache = new Map();
+async function resolvePrice(id) {
+  if (id.startsWith('price_')) return id;
+  if (priceCache.has(id)) return priceCache.get(id);
+  const product = await stripe('GET', `products/${id}`);
+  const price = typeof product.default_price === 'string' ? product.default_price : product.default_price?.id;
+  if (!product.active || !price) throw new Error(`Stripe product ${id} is inactive or has no default price`);
+  priceCache.set(id, price);
+  return price;
 }

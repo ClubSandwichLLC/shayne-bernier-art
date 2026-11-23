@@ -15,7 +15,8 @@ address, email and phone).
 1. Vercel → Add New Project → import `shayne-bernier-art`, set **Root Directory** to `milkman`. No build command.
 2. Environment variables (see `.env.example`):
    - `STRIPE_SECRET_KEY` — live secret key
-   - `STRIPE_PRICE_APPLE_CIDER_BROWN_BUTTER`, `STRIPE_PRICE_SAGE_CRANBERRY` — create one product per flavor in Stripe, paste the `price_…` IDs
+   - The flavors are already wired to Stripe products `prod_VgN09I6aGk1lLI` (Apple Cider Brown Butter) and
+     `prod_VgN2ysuOg6wnM1` (Sage Cranberry); checkout charges each product's **default price**.
 3. Vercel → Domains → add `milkman.shaynebernier.com`, then at your DNS provider add
    `CNAME milkman → cname.vercel-dns.com`.
 4. Stripe → Settings → Payment methods: make sure Apple Pay and Google Pay are on (they are by default).
