@@ -24,6 +24,19 @@
     li.sent { opacity: 0.35; }
     .tip { font-size: 0.72rem; line-height: 1.6; opacity: 0.6; margin-top: 16px; }
     [hidden] { display: none !important; }
+    .stats { margin-bottom: 40px; }
+    .figs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 16px; margin-top: 12px; }
+    .fig b { display: block; font-weight: 300; font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .fig span { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; }
+    .hours { display: flex; align-items: flex-end; gap: 2px; height: 56px; margin-top: 10px; border-bottom: 1px solid #111; }
+    .hours i { flex: 1; background: #1f3a6b; min-height: 1px; }
+    .hours i.now { background: #111; }
+    .hour-axis { display: flex; justify-content: space-between; font-size: 0.62rem; opacity: 0.55; margin-top: 4px; }
+    .kv { list-style: none; margin-top: 6px; }
+    .kv li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.82rem; }
+    .kv li.empty { opacity: 0.5; justify-content: flex-start; }
+    .refresh { font-size: 0.74rem; opacity: 0.6; }
+    hr { border: 0; border-top: 1px solid #111; margin: 32px 0 8px; }
   </style>
 </head>
 <body>
@@ -37,6 +50,30 @@
     </div>
     <p class="status"></p>
   </form>
+
+  <section class="stats" hidden>
+    <div class="row" style="justify-content:space-between"><span class="label" style="margin:0">Visits</span><button type="button" class="refresh">Refresh</button></div>
+    <div class="figs">
+      <div class="fig"><b data-s="todayViews">–</b><span>Views today</span></div>
+      <div class="fig"><b data-s="todayVisitors">–</b><span>Visitors today</span></div>
+      <div class="fig"><b data-s="lastHour">–</b><span>Views, last hour</span></div>
+      <div class="fig"><b data-s="totalViews">–</b><span>Views, all time</span></div>
+    </div>
+
+    <span class="label">Today by hour (CT)</span>
+    <div class="hours" aria-label="Views by hour today"></div>
+    <div class="hour-axis"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
+
+    <span class="label">By day</span>
+    <ol class="kv" data-l="byDay"></ol>
+    <span class="label">Where</span>
+    <ol class="kv" data-l="cities"></ol>
+    <span class="label">Came from</span>
+    <ol class="kv" data-l="referrers"></ol>
+    <span class="label">Device</span>
+    <ol class="kv" data-l="devices"></ol>
+    <hr>
+  </section>
 
   <section class="list" hidden>
     <label class="label" for="msg">Message</label>
@@ -82,9 +119,59 @@
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { status.textContent = data.error || 'Something went wrong.'; return; }
     numbers = data.signups.map(s => s.phone);
-    login.hidden = true; list.hidden = false;
+    password = login.querySelector('input').value;
+    login.hidden = true; list.hidden = false; stats.hidden = false;
     render();
+    loadStats();
   });
+
+  /* ---------- Visit stats ---------- */
+  const stats = document.querySelector('.stats');
+  let password = '';
+  const title = s => s.replace(/(^|-)([a-z])/g, (m, d, c) => (d ? ' ' : '') + c.toUpperCase());
+  const fillList = (name, rows) => {
+    const ol = stats.querySelector(`[data-l="${name}"]`);
+    ol.innerHTML = '';
+    if (!rows.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Nothing yet'; ol.append(li); return; }
+    rows.forEach(([k, v]) => {
+      const li = document.createElement('li');
+      const a = document.createElement('span'); a.textContent = k;
+      const b = document.createElement('span'); b.textContent = v;
+      li.append(a, b); ol.append(li);
+    });
+  };
+  async function loadStats() {
+    const btn = stats.querySelector('.refresh');
+    btn.textContent = 'Loading…';
+    try {
+      const res = await fetch('/api/stats', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: password }) });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      const set = (k, v) => stats.querySelector(`[data-s="${k}"]`).textContent = v.toLocaleString();
+      set('todayViews', d.today.views); set('todayVisitors', d.today.visitors);
+      set('lastHour', d.lastHour); set('totalViews', d.total.views);
+      const max = Math.max(1, ...d.byHourToday);
+      const hourNow = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', hour12: false })) % 24;
+      const hours = stats.querySelector('.hours');
+      hours.innerHTML = '';
+      d.byHourToday.forEach((n, h) => {
+        const i = document.createElement('i');
+        i.style.height = `${(n / max) * 100}%`;
+        i.title = `${h % 12 || 12}${h < 12 ? 'a' : 'p'}: ${n} view${n === 1 ? '' : 's'}`;
+        if (h === hourNow) i.className = 'now';
+        hours.append(i);
+      });
+      const fmtDay = iso => new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      fillList('byDay', d.byDay.map(r => [fmtDay(r.day), `${r.views} views · ${r.visitors} visitors`]));
+      fillList('cities', d.cities.map(([k, v]) => [title(k), v]));
+      fillList('referrers', d.referrers);
+      fillList('devices', d.devices.map(([k, v]) => [title(k), `${Math.round((v / d.total.views) * 100)}%`]));
+      btn.textContent = 'Refresh';
+    } catch (e) {
+      btn.textContent = 'Could not load — retry';
+    }
+  }
+  stats.querySelector('.refresh').addEventListener('click', loadStats);
 
   list.querySelector('.copy').addEventListener('click', async e => {
     await navigator.clipboard.writeText(numbers.join('\n'));

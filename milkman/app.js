@@ -11,7 +11,16 @@
   document.addEventListener('contextmenu', e => { if (e.target.tagName === 'IMG') e.preventDefault(); });
   document.addEventListener('dragstart', e => { if (e.target.tagName === 'IMG') e.preventDefault(); });
 
-  if (new URLSearchParams(location.search).get('order') === 'success') {
+  // Visit tracking (see api/hit.js): one beacon per page view, no cookies.
+  const isThanks = new URLSearchParams(location.search).get('order') === 'success';
+  try {
+    navigator.sendBeacon('/api/hit', JSON.stringify({
+      page: isThanks ? 'thanks' : Date.now() >= dropAt ? 'shop' : 'countdown',
+      ref: document.referrer,
+    }));
+  } catch {}
+
+  if (isThanks) {
     thanks.hidden = false;
     return;
   }
