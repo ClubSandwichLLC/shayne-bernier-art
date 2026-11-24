@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Milkman orders</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fff; color: #111; font-family: 'IBM Plex Mono', monospace; font-weight: 300; font-size: 15px; -webkit-font-smoothing: antialiased; }
+    main { max-width: 520px; margin: 0 auto; padding: 32px 24px 64px; }
+    a { color: #111; }
+    button { background: none; border: 0; font: inherit; color: #111; cursor: pointer; }
+    button:hover { opacity: 0.45; }
+    input[type=password] { flex: 1; font: inherit; font-size: 16px; color: #111; background: transparent; border: 0; border-bottom: 1px solid #111; outline: 0; padding: 6px 0; }
+    .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
+    nav { display: flex; gap: 16px; font-size: 0.8rem; }
+    nav a { text-decoration: none; opacity: 0.55; }
+    nav a.on { opacity: 1; font-weight: 400; }
+    .row { display: flex; gap: 14px; align-items: baseline; }
+    .label { display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; margin: 28px 0 10px; }
+    .status { font-size: 0.8rem; margin-top: 12px; min-height: 1.4em; }
+    .make { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; }
+    .make b { font-weight: 400; font-variant-numeric: tabular-nums; text-align: right; }
+    .order { border-top: 1px solid #111; padding: 16px 0 18px; }
+    .order.done { opacity: 0.4; }
+    .order.refunded { opacity: 0.4; }
+    .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .who { font-weight: 400; }
+    .when { font-size: 0.72rem; opacity: 0.55; white-space: nowrap; }
+    .items { margin: 10px 0; }
+    .items div { font-variant-numeric: tabular-nums; }
+    .meta { font-size: 0.8rem; line-height: 1.7; }
+    .meta a { text-decoration: none; border-bottom: 1px solid #ccc; }
+    .flag { display: inline-block; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid #111; padding: 1px 6px; margin-left: 8px; }
+    .done-toggle { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.85rem; cursor: pointer; user-select: none; }
+    .done-toggle input { width: 20px; height: 20px; accent-color: #1f3a6b; }
+    .empty { opacity: 0.55; font-size: 0.85rem; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <nav><a href="/orders.html" class="on">Orders</a><a href="/list.html">Sign-ups &amp; visits</a></nav>
+    <button type="button" class="refresh" hidden>Refresh</button>
+  </div>
+
+  <form class="login" hidden>
+    <div class="row">
+      <input type="password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit">Open</button>
+    </div>
+    <p class="status"></p>
+  </form>
+
+  <section class="page" hidden>
+    <span class="label">To make &amp; deliver</span>
+    <div class="make"></div>
+
+    <span class="label todo-label"></span>
+    <div class="todo"></div>
+
+    <span class="label done-label"></span>
+    <div class="done-list"></div>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const login = $('.login'), page = $('.page'), refreshBtn = $('.refresh');
+  const post = (url, body = {}) => fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const money = (c, cur) => (c / 100).toLocaleString('en-US', { style: 'currency', currency: (cur || 'usd').toUpperCase() });
+  const when = ms => new Date(ms).toLocaleString('en-US', { timeZone: 'America/Chicago', weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  const prettyPhone = p => (p || '').replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '($1) $2-$3');
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  let orders = [];
+
+  function card(o) {
+    const d = el('div', 'order' + (o.delivered ? ' done' : '') + (o.refunded ? ' refunded' : ''));
+    const head = el('div', 'head');
+    const who = el('span', 'who', o.name || '(no name)');
+    if (o.refunded) who.append(el('span', 'flag', 'Refunded'));
+    else if (o.partiallyRefunded) who.append(el('span', 'flag', 'Part refund'));
+    head.append(who, el('span', 'when', `#${o.number} · ${when(o.created)}`));
+    d.append(head);
+
+    const items = el('div', 'items');
+    o.items.forEach(i => items.append(el('div', null, `${i.quantity} × ${i.name}`)));
+    d.append(items);
+
+    const meta = el('div', 'meta');
+    if (o.address) {
+      const a = o.address;
+      const lines = [a.line1, a.line2, `${a.city || ''}, ${a.state || ''} ${a.postal_code || ''}`].filter(Boolean).join(', ');
+      const link = el('a', null, lines);
+      link.href = 'https://maps.apple.com/?q=' + encodeURIComponent(lines);
+      link.target = '_blank'; link.rel = 'noopener';
+      const line = el('div'); line.append(link); meta.append(line);
+    }
+    if (o.phone) {
+      const line = el('div');
+      const call = el('a', null, prettyPhone(o.phone)); call.href = 'tel:' + o.phone;
+      const text = el('a', null, 'text'); text.href = 'sms:' + o.phone;
+      line.append(call, document.createTextNode(' · '), text); meta.append(line);
+    }
+    if (o.email) { const line = el('div'); const m = el('a', null, o.email); m.href = 'mailto:' + o.email; line.append(m); meta.append(line); }
+    meta.append(el('div', null, money(o.total, o.currency)));
+    d.append(meta);
+
+    if (!o.refunded) {
+      const lab = el('label', 'done-toggle');
+      const box = el('input'); box.type = 'checkbox'; box.checked = !!o.delivered;
+      box.addEventListener('change', async () => {
+        box.disabled = true;
+        const res = await post('/api/orders', { payment_intent: o.id, delivered: box.checked });
+        box.disabled = false;
+        if (!res.ok) { box.checked = !box.checked; alert('Could not save. Try again.'); return; }
+        o.delivered = box.checked ? new Date().toISOString() : '';
+        render();
+      });
+      lab.append(box, document.createTextNode(o.delivered ? `Delivered ${when(Date.parse(o.delivered))}` : 'Delivered'));
+      d.append(lab);
+    }
+    return d;
+  }
+
+  function render() {
+    const live = orders.filter(o => !o.refunded);
+    const todo = live.filter(o => !o.delivered);
+    const done = orders.filter(o => o.delivered || o.refunded);
+
+    const make = $('.make'); make.innerHTML = '';
+    const totals = {};
+    todo.forEach(o => o.items.forEach(i => totals[i.name] = (totals[i.name] || 0) + i.quantity));
+    const names = Object.keys(totals);
+    if (!names.length) make.append(el('span', 'empty', 'Nothing left to deliver.'));
+    names.forEach(n => make.append(el('span', null, n), el('b', null, totals[n])));
+
+    $('.todo-label').textContent = `To deliver (${todo.length})`;
+    const t = $('.todo'); t.innerHTML = '';
+    if (!todo.length) t.append(el('p', 'empty', orders.length ? 'All delivered.' : 'No orders yet.'));
+    todo.forEach(o => t.append(card(o)));
+
+    $('.done-label').textContent = `Delivered or refunded (${done.length})`;
+    $('.done-label').hidden = !done.length;
+    const dl = $('.done-list'); dl.innerHTML = '';
+    done.forEach(o => dl.append(card(o)));
+  }
+
+  async function load() {
+    refreshBtn.textContent = 'Loading…';
+    const res = await post('/api/orders');
+    if (res.status === 401) { login.hidden = false; page.hidden = true; refreshBtn.hidden = true; login.querySelector('input').focus(); return; }
+    const data = await res.json().catch(() => ({}));
+    refreshBtn.textContent = 'Refresh'; refreshBtn.hidden = false;
+    if (!res.ok) { login.hidden = true; page.hidden = false; $('.make').textContent = data.error || 'Could not load orders.'; return; }
+    orders = data.orders;
+    login.hidden = true; page.hidden = false;
+    render();
+  }
+
+  login.addEventListener('submit', async e => {
+    e.preventDefault();
+    const status = login.querySelector('.status');
+    status.textContent = 'Loading…';
+    const res = await post('/api/login', { key: login.querySelector('input').value });
+    if (!res.ok) { status.textContent = 'Wrong password.'; return; }
+    status.textContent = ''; login.querySelector('input').value = '';
+    load();
+  });
+  refreshBtn.addEventListener('click', load);
+  load();
+})();
+</script>
+</body>
+</html>
