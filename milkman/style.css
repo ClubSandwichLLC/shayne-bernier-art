@@ -126,3 +126,9 @@ body {
   .copyright { position: static; text-align: right; margin-top: 6px; }
 }
 .nowrap { white-space: nowrap; }
+
+/* Mobile: side margins 16px → 24px */
+@media (max-width: 760px) {
+  .milkman { padding-left: 24px; padding-right: 24px; }
+  .site-foot { padding-left: 24px; padding-right: 24px; }
+}
