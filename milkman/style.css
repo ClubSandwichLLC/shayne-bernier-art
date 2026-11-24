@@ -101,6 +101,8 @@ body {
 .qty { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .chev { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; transition: opacity 0.2s; }
 .chev:disabled { opacity: 0.2; cursor: default; }
+.sold-out { font-size: 0.8rem; letter-spacing: 0.06em; opacity: 0.5; }
+.flavor.is-sold-out .flavor-name { opacity: 0.35; text-decoration: line-through; text-decoration-thickness: 1px; }
 .qty-num { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; font-size: 1rem; }
 
 .checkout { margin-top: clamp(20px, 5vh, 48px); font-size: 0.9rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; transition: opacity 0.2s; }

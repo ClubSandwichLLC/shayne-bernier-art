@@ -5,6 +5,7 @@
 
 import { stripe } from '../lib/stripe.js';
 import { DROP_AT, FLAVORS, MAX_EACH, SITE_URL } from '../lib/config.js';
+import { stockLeft } from '../lib/stock.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -16,14 +17,19 @@ export default async function handler(req, res) {
     const q = Number(items[key] || 0);
     if (!Number.isInteger(q) || q < 0 || q > MAX_EACH) return res.status(400).json({ error: 'Invalid quantity.' });
     if (q === 0) continue;
-    line_items.push({ id: flavor.stripeId, quantity: q });
+    line_items.push({ key, id: flavor.stripeId, quantity: q });
   }
   if (!line_items.length) return res.status(400).json({ error: 'Pick at least one.' });
 
   try {
+    const short = tooMany(line_items, await stockLeft());
+    if (short) return res.status(409).json({ error: short, sold_out: true });
+
+    const keys = line_items.map(i => i.key);
     for (const item of line_items) {
       item.price = await resolvePrice(item.id);
       delete item.id;
+      delete item.key;
     }
     const session = await stripe('POST', 'checkout/sessions', {
       mode: 'payment',
@@ -39,9 +45,21 @@ export default async function handler(req, res) {
       billing_address_collection: 'auto',
       customer_creation: 'always',
       metadata: { source: 'milkman' },
+      // Stripe's minimum. The real 5-minute hold is enforced in lib/stock.js.
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60 + 60,
       success_url: `${SITE_URL}/?order=success`,
       cancel_url: `${SITE_URL}/`,
     });
+
+    // Two people can pass the first check at the same moment. Recount with this session
+    // left out; if the others already used the stock, cancel this one.
+    const after = await stockLeft({ excludeSession: session.id });
+    const lateShort = tooMany(line_items.map((li, i) => ({ key: keys[i], quantity: li.quantity })), after);
+    if (lateShort) {
+      await stripe('POST', `checkout/sessions/${session.id}/expire`).catch(() => {});
+      return res.status(409).json({ error: lateShort, sold_out: true });
+    }
+
     return res.status(200).json({ url: session.url });
   } catch (err) {
     console.error('[checkout]', err.message);
@@ -59,4 +77,14 @@ async function resolvePrice(id) {
   if (!product.active || !price) throw new Error(`Stripe product ${id} is inactive or has no default price`);
   priceCache.set(id, price);
   return price;
+}
+
+function tooMany(items, left) {
+  for (const { key, quantity } of items) {
+    if (quantity > left[key]) {
+      const name = FLAVORS[key].name;
+      return left[key] === 0 ? `${name} just sold out.` : `Only ${left[key]} ${name} left.`;
+    }
+  }
+  return null;
 }

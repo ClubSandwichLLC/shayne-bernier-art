@@ -3,7 +3,12 @@
 // Must match data-drop-at in index.html. 2026-11-24 09:00 Central (CST) = 15:00 UTC.
 export const DROP_AT = Date.parse(process.env.MILKMAN_DROP_AT || '2026-11-24T15:00:00Z');
 
-export const MAX_EACH = 12;
+// Total available per flavor for this drop, and the most one order can take.
+export const STOCK_EACH = Number(process.env.MILKMAN_STOCK_EACH || 8);
+export const MAX_EACH = 8;
+
+// How long a checkout holds stock before it's cancelled.
+export const HOLD_SECONDS = 5 * 60;
 
 // Each flavor is a Stripe product; checkout charges the product's default price.
 // An env var can override with a different prod_… or a specific price_… ID.

@@ -4,7 +4,8 @@
   const before = root.querySelector('.before');
   const after = root.querySelector('.after');
   const thanks = root.querySelector('.thanks');
-  const MAX_EACH = 12;
+  const MAX_EACH = 8;
+  const left = {}; // from /api/stock
 
   // No right-click / drag on the logo, same as the main site.
   document.addEventListener('contextmenu', e => { if (e.target.tagName === 'IMG') e.preventDefault(); });
@@ -33,6 +34,7 @@
       clearInterval(timer);
       before.hidden = true;
       after.hidden = false;
+      document.dispatchEvent(new Event('milkman:drop'));
       return;
     }
     const total = Math.floor(left / 1000);
@@ -80,23 +82,51 @@
   const checkoutBtn = after.querySelector('.checkout');
   const checkoutStatus = after.querySelector('.checkout-status');
 
+  const renders = [];
   after.querySelectorAll('.flavor').forEach(row => {
     const key = row.dataset.flavor;
     const num = row.querySelector('.qty-num');
+    const qtyBox = row.querySelector('.qty');
+    const soldOut = document.createElement('span');
+    soldOut.className = 'sold-out';
+    soldOut.textContent = 'Sold out';
+    soldOut.hidden = true;
+    qtyBox.after(soldOut);
     const [down, up] = row.querySelectorAll('.chev');
     qty[key] = 0;
+    const cap = () => Math.min(MAX_EACH, left[key] ?? MAX_EACH);
     const render = () => {
+      qty[key] = Math.min(qty[key], cap());
+      const out = left[key] === 0;
+      qtyBox.hidden = out;
+      soldOut.hidden = !out;
+      row.classList.toggle('is-sold-out', out);
       num.textContent = qty[key];
       down.disabled = qty[key] === 0;
-      up.disabled = qty[key] === MAX_EACH;
+      up.disabled = qty[key] >= cap();
       checkoutBtn.disabled = Object.values(qty).every(q => q === 0);
     };
     row.querySelectorAll('.chev').forEach(btn => btn.addEventListener('click', () => {
-      qty[key] = Math.min(MAX_EACH, Math.max(0, qty[key] + Number(btn.dataset.step)));
+      qty[key] = Math.min(cap(), Math.max(0, qty[key] + Number(btn.dataset.step)));
       render();
     }));
+    renders.push(render);
     render();
   });
+
+  async function refreshStock() {
+    try {
+      const res = await fetch('/api/stock', { cache: 'no-store' });
+      if (!res.ok) return;
+      Object.assign(left, (await res.json()).left);
+      renders.forEach(r => r());
+    } catch {}
+  }
+  let stockTimer;
+  const startStock = () => { if (!stockTimer) { refreshStock(); stockTimer = setInterval(refreshStock, 30000); } };
+  // The countdown fires 'milkman:drop' at zero; if we loaded after the drop, start now.
+  if (Date.now() >= dropAt) startStock();
+  else document.addEventListener('milkman:drop', startStock, { once: true });
 
   checkoutBtn.addEventListener('click', async () => {
     checkoutBtn.disabled = true;
@@ -108,6 +138,7 @@
         body: JSON.stringify({ items: qty }),
       });
       const data = await res.json().catch(() => ({}));
+      if (data.sold_out) refreshStock();
       if (!res.ok || !data.url) throw new Error(data.error || 'Checkout is unavailable right now. Try again in a moment.');
       location.href = data.url; // Stripe Checkout: Apple Pay, Google Pay, card; collects address, email, phone
     } catch (err) {
