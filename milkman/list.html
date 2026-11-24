@@ -41,9 +41,9 @@
 </head>
 <body>
 <main>
-  <h1>Milkman sign-ups</h1>
+  <div class="row" style="justify-content:space-between"><h1>Milkman sign-ups</h1><button type="button" class="logout refresh" hidden>Log out</button></div>
 
-  <form class="login">
+  <form class="login" hidden>
     <div class="row">
       <input type="password" placeholder="Password" autocomplete="current-password" required>
       <button type="submit">Open</button>
@@ -56,8 +56,12 @@
     <div class="figs">
       <div class="fig"><b data-s="todayViews">–</b><span>Views today</span></div>
       <div class="fig"><b data-s="todayVisitors">–</b><span>Visitors today</span></div>
+      <div class="fig"><b data-s="todayNew">–</b><span>New today</span></div>
+      <div class="fig"><b data-s="todayReturning">–</b><span>Returning today</span></div>
       <div class="fig"><b data-s="lastHour">–</b><span>Views, last hour</span></div>
       <div class="fig"><b data-s="totalViews">–</b><span>Views, all time</span></div>
+      <div class="fig"><b data-s="totalVisitors">–</b><span>Visitors, all time</span></div>
+      <div class="fig"><b data-s="signups">–</b><span>Text sign-ups</span></div>
     </div>
 
     <span class="label">Today by hour (CT)</span>
@@ -112,22 +116,36 @@
   }
   msg.addEventListener('input', () => ol.querySelectorAll('a').forEach((a, i) => { a.href = `sms:${numbers[i]}?&body=${encodeURIComponent(msg.value)}`; }));
 
+  const post = (url, body = {}) => fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+  // Already logged in (cookie)? Go straight to the page; otherwise show the password box.
+  async function open() {
+    const res = await post('/api/signups');
+    if (res.status === 401) { login.hidden = false; login.querySelector('input').focus(); return; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { login.hidden = false; status.textContent = data.error || 'Something went wrong.'; return; }
+    numbers = data.signups.map(s => s.phone);
+    login.hidden = true; list.hidden = false; stats.hidden = false; logout.hidden = false;
+    render();
+    loadStats();
+  }
+
   login.addEventListener('submit', async e => {
     e.preventDefault();
     status.textContent = 'Loading…';
-    const res = await fetch('/api/signups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: login.querySelector('input').value }) });
+    const res = await post('/api/login', { key: login.querySelector('input').value });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { status.textContent = data.error || 'Something went wrong.'; return; }
-    numbers = data.signups.map(s => s.phone);
-    password = login.querySelector('input').value;
-    login.hidden = true; list.hidden = false; stats.hidden = false;
-    render();
-    loadStats();
+    status.textContent = '';
+    login.querySelector('input').value = '';
+    open();
   });
+
+  const logout = document.querySelector('.logout');
+  logout.addEventListener('click', async () => { await post('/api/login', { logout: true }); location.reload(); });
 
   /* ---------- Visit stats ---------- */
   const stats = document.querySelector('.stats');
-  let password = '';
   const title = s => s.replace(/(^|-)([a-z])/g, (m, d, c) => (d ? ' ' : '') + c.toUpperCase());
   const fillList = (name, rows) => {
     const ol = stats.querySelector(`[data-l="${name}"]`);
@@ -144,12 +162,14 @@
     const btn = stats.querySelector('.refresh');
     btn.textContent = 'Loading…';
     try {
-      const res = await fetch('/api/stats', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: password }) });
+      const res = await post('/api/stats');
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
       const set = (k, v) => stats.querySelector(`[data-s="${k}"]`).textContent = v.toLocaleString();
       set('todayViews', d.today.views); set('todayVisitors', d.today.visitors);
+      set('todayReturning', d.today.returning); set('todayNew', d.today.visitors - d.today.returning);
       set('lastHour', d.lastHour); set('totalViews', d.total.views);
+      set('totalVisitors', d.total.visitors); set('signups', numbers.length);
       const max = Math.max(1, ...d.byHourToday);
       const hourNow = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', hour12: false })) % 24;
       const hours = stats.querySelector('.hours');
@@ -172,6 +192,8 @@
     }
   }
   stats.querySelector('.refresh').addEventListener('click', loadStats);
+
+  open();
 
   list.querySelector('.copy').addEventListener('click', async e => {
     await navigator.clipboard.writeText(numbers.join('\n'));

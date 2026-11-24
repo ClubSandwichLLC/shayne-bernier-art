@@ -1,17 +1,12 @@
 // POST /api/stats { key } — visit stats for the private list page.
-import crypto from 'node:crypto';
+import { isAdmin } from '../lib/auth.js';
 import { list } from '@vercel/blob';
 import { dayIn, parseVisit, TZ } from '../lib/visits.js';
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const expected = process.env.MILKMAN_ADMIN_KEY || '';
-  const given = String(req.body?.key || '');
-  if (!expected || given.length !== expected.length ||
-      !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected))) {
-    return res.status(401).json({ error: 'Wrong password.' });
-  }
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Not logged in.' });
 
   try {
     const visits = [];
@@ -24,7 +19,13 @@ export default async function handler(req, res) {
 
     const now = Date.now();
     const today = dayIn(now);
-    const uniq = arr => new Set(arr.map(v => `${dayIn(v.ms)}|${v.visitor}`)).size;
+    const uniq = arr => new Set(arr.map(v => v.visitor)).size;
+    // Returning = the visitor's first view that day already carried a cookie from before.
+    const returningCount = arr => {
+      const first = new Map();
+      for (const v of [...arr].sort((a, b) => a.ms - b.ms)) if (!first.has(v.visitor)) first.set(v.visitor, v);
+      return [...first.values()].filter(v => v.ret === 'r').length;
+    };
     const top = (arr, f, n = 8) => Object.entries(arr.reduce((m, v) => ((m[f(v)] = (m[f(v)] || 0) + 1), m), {}))
       .sort((a, b) => b[1] - a[1]).slice(0, n);
 
@@ -35,7 +36,11 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       total: { views: visits.length, visitors: uniq(visits) },
-      today: { views: todays.length, visitors: uniq(todays) },
+      today: {
+        views: todays.length,
+        visitors: uniq(todays),
+        returning: returningCount(todays),
+      },
       lastHour: visits.filter(v => now - v.ms < 3600e3).length,
       byDay: byDay.map(([day, views]) => ({ day, views, visitors: uniq(visits.filter(v => dayIn(v.ms) === day)) })),
       byHourToday: byHour,

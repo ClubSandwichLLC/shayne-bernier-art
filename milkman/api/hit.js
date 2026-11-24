@@ -17,10 +17,13 @@ export default async function handler(req, res) {
 
   const now = Date.now();
   const day = dayIn(now);
-  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  const visitor = crypto.createHash('sha256')
-    .update(`${ip}|${ua}|${day}|${process.env.MILKMAN_ADMIN_KEY || ''}`)
-    .digest('hex').slice(0, 12);
+
+  // Visitor ID: a random first-party cookie (1 year), so a person who comes back on
+  // another day is counted once, as returning. No cookie yet = first visit; set one.
+  const existing = String(req.headers.cookie || '').match(/(?:^|;\s*)mm_vid=([a-f0-9]{12})/)?.[1];
+  const visitor = existing || crypto.randomBytes(6).toString('hex');
+  const returning = existing ? 'r' : 'n';
+  res.setHeader('Set-Cookie', `mm_vid=${visitor}; Path=/api/hit; Max-Age=${365 * 24 * 3600}; HttpOnly; Secure; SameSite=Lax`);
   const device = /iPad|Tablet/i.test(ua) ? 'tablet' : /Mobi|Android|iPhone/i.test(ua) ? 'mobile' : 'desktop';
   const country = clean(req.headers['x-vercel-ip-country'], 4);
   let city = '-';
@@ -33,7 +36,7 @@ export default async function handler(req, res) {
   } catch {}
 
   try {
-    await put(`v/${day}/${now}~${visitor}~${device}~${country}~${city}~${page}~${ref}`, '1', {
+    await put(`v/${day}/${now}~${visitor}~${device}~${country}~${city}~${page}~${ref}~${returning}`, '1', {
       access: 'public',
       addRandomSuffix: true,
       contentType: 'text/plain',
