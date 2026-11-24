@@ -28,6 +28,12 @@ export default async function handler(req, res) {
     const session = await stripe('POST', 'checkout/sessions', {
       mode: 'payment',
       line_items,
+      // Card only. In Checkout this still shows Apple Pay and Google Pay, and drops
+      // Klarna, Amazon Pay, bank payments and the other dashboard-enabled methods.
+      payment_method_types: ['card'],
+      custom_text: {
+        shipping_address: { message: 'Milkman delivers in San Antonio only. Shipping is not available at this time.' },
+      },
       shipping_address_collection: { allowed_countries: ['US'] },
       phone_number_collection: { enabled: true },
       billing_address_collection: 'auto',

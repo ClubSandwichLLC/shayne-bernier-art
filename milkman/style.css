@@ -106,6 +106,8 @@ body {
 .checkout { margin-top: clamp(20px, 5vh, 48px); font-size: 0.9rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; transition: opacity 0.2s; }
 .checkout:disabled { opacity: 0.25; cursor: default; }
 
+.delivery-note { margin-top: 14px; max-width: 340px; font-size: 0.7rem; line-height: 1.6; letter-spacing: 0.02em; opacity: 0.6; }
+
 .thanks-line { max-width: 360px; font-size: 0.86rem; line-height: 1.7; }
 
 .before, .after, .thanks { display: flex; flex-direction: column; align-items: center; width: 100%; }
