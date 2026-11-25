@@ -66,6 +66,37 @@
   const formStatus = form.querySelector('.status');
   const formBtn = form.querySelector('button');
 
+  /* Format the cell number as it's typed: 2105550100 → 210-555-0100.
+     A dash appears only once the next group starts, so backspacing never gets stuck on one. */
+  const digitsOf = v => {
+    let d = v.replace(/\D/g, '');
+    if (d.length > 10 && d[0] === '1') d = d.slice(1); // "+1 (210) 555-0100" from autofill
+    return d.slice(0, 10);
+  };
+  const dashed = d => [d.slice(0, 3), d.slice(3, 6), d.slice(6)].filter(Boolean).join('-');
+  phoneInput.addEventListener('beforeinput', e => {
+    // Backspace right after a dash removes the digit before it instead.
+    const { selectionStart: a, selectionEnd: b, value } = phoneInput;
+    if (e.inputType === 'deleteContentBackward' && a === b && value[a - 1] === '-') {
+      e.preventDefault();
+      phoneInput.value = value.slice(0, a - 2) + value.slice(a);
+      phoneInput.setSelectionRange(a - 2, a - 2);
+      phoneInput.dispatchEvent(new Event('input'));
+    }
+  });
+  phoneInput.addEventListener('input', () => {
+    const before = phoneInput.value;
+    const caret = phoneInput.selectionStart ?? before.length;
+    const digitsBeforeCaret = before.slice(0, caret).replace(/\D/g, '').length;
+    const next = dashed(digitsOf(before));
+    if (next === before) return;
+    phoneInput.value = next;
+    // Put the caret back after the same number of digits.
+    let pos = 0, seen = 0;
+    while (pos < next.length && seen < Math.min(digitsBeforeCaret, 10)) { if (/\d/.test(next[pos])) seen++; pos++; }
+    phoneInput.setSelectionRange(pos, pos);
+  });
+
   form.addEventListener('submit', async e => {
     e.preventDefault();
     if (!firstInput.value.trim() || !lastInput.value.trim()) {
