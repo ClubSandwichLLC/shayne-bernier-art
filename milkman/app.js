@@ -30,7 +30,9 @@
   const tz = 'America/Chicago';
   const day = when.toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' });
   const time = when.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' }).replace(' AM', ' am').replace(' PM', ' pm');
-  root.querySelector('.drop-when').innerHTML = `Flavors drop ${day} <span class="nowrap">at ${time} CT</span>`;
+  // Breaks only between "Flavors drop <day>" and "at <time> CT" (rule 10: non-breaking spaces, not markup).
+  const nb = s => s.replace(/ /g, '\u00a0');
+  root.querySelector('.drop-when').textContent = `${nb(`Flavors drop ${day}`)} ${nb(`at ${time} CT`)}`;
 
   /* ---------- Countdown ---------- */
   const pad = n => String(n).padStart(2, '0');
