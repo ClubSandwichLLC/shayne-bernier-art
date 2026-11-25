@@ -32,7 +32,6 @@ export const FLAVORS = {
 
 // The exact opt-in wording shown on the page; stored with every sign-up as the consent record.
 export const SMS_CONSENT_TEXT =
-  'Sign up for Milkman drop texts. No spam, and your number is safe with us. Pinkie promise. ' +
-  'One text when the flavors drop. Msg & data rates may apply. Reply STOP to opt out.';
+  'Sign up for Milkman drop texts. No spam, and your number is safe with us. Pinkie promise.';
 
 export const SITE_URL = process.env.MILKMAN_SITE_URL || 'https://milkman.shaynebernier.com';
