@@ -7,6 +7,13 @@ export const DROP_AT = Date.parse(process.env.MILKMAN_DROP_AT || '2026-11-24T15:
 export const STOCK_EACH = Number(process.env.MILKMAN_STOCK_EACH || 8);
 export const MAX_EACH = 8;
 
+// Manual sold-out switch, regardless of stock: MILKMAN_SOLD_OUT = "all", or flavor keys
+// separated by commas (e.g. "sage_cranberry"). Empty = normal stock counting.
+export const SOLD_OUT = new Set(
+  String(process.env.MILKMAN_SOLD_OUT || '').split(',').map(s => s.trim()).filter(Boolean)
+);
+export const isSoldOut = key => SOLD_OUT.has('all') || SOLD_OUT.has(key);
+
 // How long a checkout holds stock before it's cancelled.
 export const HOLD_SECONDS = 5 * 60;
 

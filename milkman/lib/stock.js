@@ -5,9 +5,12 @@
 //   left = STOCK_EACH - sold - held
 
 import { stripe } from './stripe.js';
-import { DROP_AT, FLAVORS, HOLD_SECONDS, STOCK_EACH } from './config.js';
+import { DROP_AT, FLAVORS, HOLD_SECONDS, STOCK_EACH, isSoldOut } from './config.js';
 
 export async function stockLeft({ excludeSession } = {}) {
+  const keys = Object.keys(FLAVORS);
+  if (keys.every(isSoldOut)) return Object.fromEntries(keys.map(k => [k, 0]));
+
   const used = Object.fromEntries(Object.keys(FLAVORS).map(k => [k, 0]));
   const since = Math.floor(DROP_AT / 1000) - 24 * 3600; // include any pre-drop tests on drop day
 
@@ -39,7 +42,7 @@ export async function stockLeft({ excludeSession } = {}) {
     starting_after = page.has_more ? page.data[page.data.length - 1].id : undefined;
   } while (starting_after);
 
-  return Object.fromEntries(Object.keys(FLAVORS).map(k => [k, Math.max(0, STOCK_EACH - used[k])]));
+  return Object.fromEntries(keys.map(k => [k, isSoldOut(k) ? 0 : Math.max(0, STOCK_EACH - used[k])]));
 }
 
 function flavorFor(price) {
