@@ -31,17 +31,17 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: clamp(16px, 4vh, 40px) 16px clamp(8px, 2vh, 20px);
+  padding: clamp(8px, 2.5vh, 28px) 16px clamp(8px, 2vh, 20px);
   text-align: center;
 }
 
 /* --- Logo --- */
 .logo {
-  flex: 0 1 46vh;
+  flex: 0 1 42vh;
   min-height: 90px;
   display: flex;
   justify-content: center;
-  margin-bottom: clamp(16px, 4vh, 40px);
+  margin-bottom: clamp(14px, 3.5vh, 36px);
 }
 .logo img { display: block; height: 100%; width: auto; max-width: 80vw; object-fit: contain; user-select: none; -webkit-user-drag: none; }
 
@@ -76,7 +76,7 @@ body {
   padding: 4px 0;
 }
 .notify input::placeholder { color: #767676; opacity: 1; }
-.fine { margin-top: 12px; font-size: 0.64rem; line-height: 1.6; color: #595959; }
+.fine { margin-top: 12px; font-size: min(0.64rem, 2.9vw); line-height: 1.6; color: #595959; }
 
 /* Plain-text buttons: no fill, no outline */
 .text-btn, .checkout, .chev {
@@ -113,20 +113,20 @@ body {
 
 .thanks-line { max-width: 360px; font-size: 0.86rem; line-height: 1.7; }
 
-.before, .after, .thanks { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.before, .after, .between, .thanks { display: flex; flex-direction: column; align-items: center; width: 100%; min-width: 0; }
 
 /* --- Footer --- */
 .site-foot {
   flex: 0 0 auto;
   position: relative;
-  padding: 0 16px max(14px, env(safe-area-inset-bottom));
+  padding: 0 16px calc(24px + env(safe-area-inset-bottom));
   text-align: center;
 }
 .tagline { font-size: clamp(0.62rem, 2.6vw, 0.74rem); line-height: 1.6; letter-spacing: 0.02em; max-width: 820px; margin: 0 auto; }
-.copyright { position: absolute; right: 16px; bottom: max(14px, env(safe-area-inset-bottom)); font-size: 0.56rem; letter-spacing: 0.04em; color: #595959; }
+.copyright { position: absolute; right: 16px; bottom: calc(24px + env(safe-area-inset-bottom)); font-size: 0.56rem; letter-spacing: 0.04em; color: #595959; }
 
 @media (max-width: 1100px) {
-  .copyright { position: static; text-align: right; margin-top: 6px; }
+  .copyright { position: static; text-align: right; margin-top: 10px; }
 }
 
 /* Mobile: side margins 16px → 24px */
@@ -138,3 +138,20 @@ body {
 /* Line breaks at sense boundaries (design rule 10): balance short display text; phrases
    that must not split are glued with non-breaking spaces in the markup. */
 .drop-when, .notify-label, .fine, .delivery-note, .tagline, .thanks-line, .flavor-name { text-wrap: balance; }
+
+/* --- Sign-up form: names above the cell number --- */
+.name-row { display: flex; gap: 16px; margin-bottom: 14px; }
+.name-row input {
+  flex: 1; min-width: 0; border: 0; border-bottom: 1px solid #111; outline: 0; background: transparent;
+  font: inherit; font-size: 16px; color: #111; padding: 4px 0 6px;
+}
+.name-row input::placeholder { color: #767676; opacity: 1; }
+.pinkie { margin-top: 14px; font-size: min(0.74rem, 3.1vw); line-height: 1.6; letter-spacing: 0.02em; color: #595959; text-wrap: balance; }
+.pinkie + .fine { margin-top: 6px; }
+/* Bot trap: off-screen rather than display:none, which some bots skip */
+.trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+/* --- Between drops --- */
+.between-sold { color: #c62828; font-size: 0.9rem; letter-spacing: 0.08em; margin-bottom: 12px; }
+.whim { max-width: 360px; font-size: min(0.95rem, 3.35vw); line-height: 1.7; letter-spacing: 0.02em; text-wrap: balance; margin-bottom: clamp(18px, 4vh, 32px); }
+.between .notify { margin-top: 0; }

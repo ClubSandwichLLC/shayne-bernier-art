@@ -167,6 +167,7 @@
     const status = login.querySelector('.status');
     status.textContent = 'Loading…';
     const res = await post('/api/login', { key: login.querySelector('input').value });
+    if (res.status === 429 || res.status === 403) { (login.querySelector('.status')).textContent = 'Too many tries. Wait a few minutes and try again.'; return; }
     if (!res.ok) { status.textContent = 'Wrong password.'; return; }
     status.textContent = ''; login.querySelector('input').value = '';
     load();

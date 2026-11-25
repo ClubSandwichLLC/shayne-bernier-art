@@ -96,7 +96,7 @@
   const list = document.querySelector('.list');
   const ol = list.querySelector('ol');
   const msg = document.getElementById('msg');
-  let numbers = [];
+  let numbers = [], signups = [];
   const pretty = p => p.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '($1) $2-$3');
 
   function render() {
@@ -104,7 +104,8 @@
     numbers.forEach(p => {
       const li = document.createElement('li');
       const num = document.createElement('span');
-      num.textContent = pretty(p);
+      const who = signups.find(s => s.phone === p)?.name;
+      num.textContent = who ? `${who} · ${pretty(p)}` : pretty(p);
       const a = document.createElement('a');
       a.textContent = 'Text';
       a.href = `sms:${p}?&body=${encodeURIComponent(msg.value)}`;
@@ -124,7 +125,8 @@
     if (res.status === 401) { login.hidden = false; login.querySelector('input').focus(); return; }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { login.hidden = false; status.textContent = data.error || 'Something went wrong.'; return; }
-    numbers = data.signups.map(s => s.phone);
+    signups = data.signups;
+    numbers = signups.map(s => s.phone);
     login.hidden = true; list.hidden = false; stats.hidden = false; logout.hidden = false;
     render();
     loadStats();
@@ -134,6 +136,7 @@
     e.preventDefault();
     status.textContent = 'Loading…';
     const res = await post('/api/login', { key: login.querySelector('input').value });
+    if (res.status === 429 || res.status === 403) { (login.querySelector('.status')).textContent = 'Too many tries. Wait a few minutes and try again.'; return; }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { status.textContent = data.error || 'Something went wrong.'; return; }
     status.textContent = '';

@@ -21,12 +21,12 @@ export default async function handler(req, res) {
         page,
       });
       for (const c of r.data) {
-        if (c.phone && !seen.has(c.phone)) seen.set(c.phone, c.metadata?.sms_consent_at || '');
+        if (c.phone && !seen.has(c.phone)) seen.set(c.phone, { at: c.metadata?.sms_consent_at || '', name: c.name || '' });
       }
       page = r.has_more ? r.next_page : undefined;
     } while (page);
 
-    const signups = [...seen].map(([phone, at]) => ({ phone, at })).sort((a, b) => a.at.localeCompare(b.at));
+    const signups = [...seen].map(([phone, v]) => ({ phone, ...v })).sort((a, b) => a.at.localeCompare(b.at));
     return res.status(200).json({ signups });
   } catch (err) {
     console.error('[signups]', err.message);

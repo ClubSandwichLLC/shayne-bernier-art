@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Milkman</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,11 +32,21 @@
       <p class="drop-when">Flavors drop Tuesday, November 24 at 9:00 am CT</p>
 
       <form class="notify" novalidate>
-        <label for="phone" class="notify-label">Text me when it drops</label>
+        <label for="first" class="notify-label">Text me when it drops</label>
+        <div class="name-row">
+          <input id="first" name="first" type="text" autocomplete="given-name" autocapitalize="words" placeholder="First name" maxlength="40" required aria-label="First name">
+          <input id="last" name="last" type="text" autocomplete="family-name" autocapitalize="words" placeholder="Last name" maxlength="40" required aria-label="Last name">
+        </div>
+        <!-- Bot trap: hidden from people, filled in by form-stuffing bots. -->
+        <div class="trap" aria-hidden="true">
+          <label for="website">Website</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
         <div class="notify-row">
-          <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-5555" required>
+          <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-5555" required aria-label="Cell number">
           <button type="submit" class="text-btn">Notify me</button>
         </div>
+        <p class="pinkie">No&nbsp;spam,&nbsp;and&nbsp;your&nbsp;number&nbsp;is&nbsp;safe&nbsp;with&nbsp;us. Pinkie&nbsp;promise.</p>
         <p class="fine">One&nbsp;text&nbsp;when&nbsp;the&nbsp;flavors&nbsp;drop. Msg&nbsp;&amp;&nbsp;data&nbsp;rates&nbsp;may&nbsp;apply. Reply&nbsp;STOP&nbsp;to&nbsp;opt&nbsp;out.</p>
         <p class="status" role="status"></p>
       </form>
@@ -76,6 +86,12 @@
       <p class="status checkout-status" role="status"></p>
     </section>
 
+    <!-- Between drops: everything sold out. The sign-up form moves in here. -->
+    <section class="between" hidden>
+      <p class="between-sold">Sold Out</p>
+      <p class="whim">Milkman&nbsp;drops&nbsp;flavors&nbsp;on&nbsp;a&nbsp;whim. Sign&nbsp;up&nbsp;so&nbsp;you&nbsp;don't&nbsp;miss&nbsp;the&nbsp;next&nbsp;drop.</p>
+    </section>
+
     <!-- After a successful payment (?order=success) -->
     <section class="thanks" hidden>
       <p class="thanks-line">Thank&nbsp;you. Your&nbsp;order&nbsp;is&nbsp;in&nbsp;&mdash; a&nbsp;receipt&nbsp;is&nbsp;on&nbsp;its&nbsp;way to&nbsp;your&nbsp;email.</p>
@@ -84,7 +100,7 @@
   </main>
 
   <footer class="site-foot">
-    <p class="tagline">Milkman&nbsp;Iced&nbsp;Creams. Only&nbsp;the&nbsp;good&nbsp;stuff, made&nbsp;when&nbsp;we&nbsp;feel&nbsp;like&nbsp;it. Provocative, expensive, unexpected.</p>
+    <p class="tagline">Only&nbsp;the&nbsp;Good&nbsp;Stuff, Made&nbsp;When&nbsp;We&nbsp;Feel&nbsp;Like&nbsp;It. Provocative,&nbsp;Expensive,&nbsp;Unexpected.</p>
     <p class="copyright">Copyright 2026 Milkman.</p>
   </footer>
 

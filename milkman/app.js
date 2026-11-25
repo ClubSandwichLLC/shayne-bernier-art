@@ -44,7 +44,6 @@
     if (left <= 0) {
       clearInterval(timer);
       before.hidden = true;
-      after.hidden = false;
       document.dispatchEvent(new Event('milkman:drop'));
       return;
     }
@@ -59,12 +58,20 @@
 
   /* ---------- Text sign-up ---------- */
   const form = root.querySelector('.notify');
-  const phoneInput = form.querySelector('input');
+  const phoneInput = form.querySelector('#phone');
+  const firstInput = form.querySelector('#first');
+  const lastInput = form.querySelector('#last');
+  const formShownAt = Date.now();
+  const between = root.querySelector('.between');
   const formStatus = form.querySelector('.status');
   const formBtn = form.querySelector('button');
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
+    if (!firstInput.value.trim() || !lastInput.value.trim()) {
+      formStatus.textContent = 'Add your first and last name.';
+      return;
+    }
     const digits = phoneInput.value.replace(/\D/g, '');
     if (!(digits.length === 10 || (digits.length === 11 && digits[0] === '1'))) {
       formStatus.textContent = 'Enter a 10-digit US mobile number.';
@@ -76,12 +83,21 @@
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneInput.value }),
+        body: JSON.stringify({
+          first: firstInput.value,
+          last: lastInput.value,
+          phone: phoneInput.value,
+          website: form.querySelector('#website').value, // bot trap
+          elapsed: Date.now() - formShownAt,             // bots submit instantly
+        }),
       });
+      if (res.status === 429 || res.status === 403) throw new Error('Too many tries. Wait a few minutes and try again.'); // firewall rate limit
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Try again.');
-      form.querySelector('.notify-row').hidden = true;
-      formStatus.textContent = "You're on the list. See you at 9.";
+      form.querySelectorAll('.name-row, .notify-row').forEach(r => r.hidden = true);
+      formStatus.textContent = between.contains(form)
+        ? "You're on the list. We'll text you when the next one drops."
+        : "You're on the list. See you at 9.";
     } catch (err) {
       formStatus.textContent = err.message;
       formBtn.disabled = false;
@@ -125,13 +141,27 @@
     render();
   });
 
+  // After the drop: show the flavors, or — when every flavor is gone — the between-drops
+  // message with the sign-up form moved into it.
+  function showMode() {
+    const keys = Object.keys(qty);
+    const allGone = keys.length > 0 && keys.every(k => left[k] === 0);
+    after.hidden = allGone;
+    between.hidden = !allGone;
+    if (allGone && !between.contains(form)) {
+      between.append(form);
+      form.querySelector('.notify-label').hidden = true;
+    }
+  }
+
   async function refreshStock() {
     try {
       const res = await fetch('/api/stock', { cache: 'no-store' });
-      if (!res.ok) return;
+      if (!res.ok) throw new Error();
       Object.assign(left, (await res.json()).left);
       renders.forEach(r => r());
     } catch {}
+    showMode(); // on failure, falls back to the shop (left unknown = not sold out)
   }
   let stockTimer;
   const startStock = () => { if (!stockTimer) { refreshStock(); stockTimer = setInterval(refreshStock, 30000); } };

@@ -30,3 +30,15 @@ Change `data-drop-at` in `index.html` **and** `MILKMAN_DROP_AT` (env var or `lib
 `/list.html` (password = Vercel env var `MILKMAN_ADMIN_KEY`) lists every text sign-up with a one-tap
 "Text" link that opens a message with the drop text filled in. Until a Twilio number is registered
 (toll-free verification or A2P 10DLC), drop texts are sent by hand from this page.
+
+## Spam protection
+
+- **Vercel Firewall** (project → Firewall) rate-limits per IP, 10-minute windows:
+  `/api/subscribe` 5, `/api/login` 10, `/api/checkout` 20. Over the limit → blocked at the edge.
+- **Sign-up form**: hidden trap field + minimum time on screen. Caught bots get a normal
+  "you're on the list" reply and nothing is saved.
+
+## Between drops
+
+When every flavor's stock is 0 (or `MILKMAN_SOLD_OUT=all`), the page shows *Sold Out* and
+the sign-up form instead of the flavors and Checkout.
