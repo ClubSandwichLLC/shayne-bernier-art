@@ -16,19 +16,20 @@
     input[type=password] { flex: 1; font: inherit; font-size: 16px; color: #111; background: transparent; border: 0; border-bottom: 1px solid #111; outline: 0; padding: 6px 0; }
     .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
     nav { display: flex; gap: 16px; font-size: 0.8rem; }
-    nav a { text-decoration: none; opacity: 0.55; }
-    nav a.on { opacity: 1; font-weight: 400; }
+    nav a { text-decoration: none; color: #595959; }
+    nav a.on { color: #111; font-weight: 400; }
     .row { display: flex; gap: 14px; align-items: baseline; }
-    .label { display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; margin: 28px 0 10px; }
+    .label { display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: #595959; margin: 28px 0 10px; }
     .status { font-size: 0.8rem; margin-top: 12px; min-height: 1.4em; }
     .make { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; }
     .make b { font-weight: 400; font-variant-numeric: tabular-nums; text-align: right; }
     .order { border-top: 1px solid #111; padding: 16px 0 18px; }
-    .order.done { opacity: 0.4; }
-    .order.refunded { opacity: 0.4; }
+    /* Delivered / refunded: dimmed with a solid grey that still reads */
+    .order.done, .order.done *, .order.refunded, .order.refunded * { color: #595959; }
+    .order.done .flag, .order.refunded .flag { border-color: #595959; }
     .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
     .who { font-weight: 400; }
-    .when { font-size: 0.72rem; opacity: 0.55; white-space: nowrap; }
+    .when { font-size: 0.72rem; color: #595959; white-space: nowrap; }
     .items { margin: 10px 0; }
     .items div { font-variant-numeric: tabular-nums; }
     .meta { font-size: 0.8rem; line-height: 1.7; }
@@ -36,7 +37,7 @@
     .flag { display: inline-block; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid #111; padding: 1px 6px; margin-left: 8px; }
     .done-toggle { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.85rem; cursor: pointer; user-select: none; }
     .done-toggle input { width: 20px; height: 20px; accent-color: #1f3a6b; }
-    .empty { opacity: 0.55; font-size: 0.85rem; }
+    .empty { color: #595959; font-size: 0.85rem; }
     [hidden] { display: none !important; }
   </style>
 </head>

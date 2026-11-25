@@ -16,32 +16,32 @@
     button { background: none; border: 0; font: inherit; color: #111; cursor: pointer; padding: 8px 0; }
     button:hover { opacity: 0.45; }
     .row { display: flex; gap: 14px; align-items: baseline; }
-    .label { display: block; font-size: 0.74rem; opacity: 0.6; margin: 24px 0 8px; letter-spacing: 0.04em; }
+    .label { display: block; font-size: 0.74rem; color: #595959; margin: 24px 0 8px; letter-spacing: 0.04em; }
     .status { font-size: 0.8rem; margin-top: 12px; min-height: 1.4em; }
     ol { list-style: none; margin-top: 12px; }
     li { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; font-variant-numeric: tabular-nums; }
     li a { color: #111; text-decoration: none; font-weight: 400; }
-    li.sent { opacity: 0.35; }
-    .tip { font-size: 0.72rem; line-height: 1.6; opacity: 0.6; margin-top: 16px; }
+    li.sent, li.sent a { color: #767676; }
+    .tip { font-size: 0.72rem; line-height: 1.6; color: #595959; margin-top: 16px; }
     [hidden] { display: none !important; }
     .stats { margin-bottom: 40px; }
     .figs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 16px; margin-top: 12px; }
     .fig b { display: block; font-weight: 300; font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
-    .fig span { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; }
+    .fig span { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: #595959; }
     .hours { display: flex; align-items: flex-end; gap: 2px; height: 56px; margin-top: 10px; border-bottom: 1px solid #111; }
     .hours i { flex: 1; background: #1f3a6b; min-height: 1px; }
     .hours i.now { background: #111; }
-    .hour-axis { display: flex; justify-content: space-between; font-size: 0.62rem; opacity: 0.55; margin-top: 4px; }
+    .hour-axis { display: flex; justify-content: space-between; font-size: 0.62rem; color: #595959; margin-top: 4px; }
     .kv { list-style: none; margin-top: 6px; }
     .kv li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.82rem; }
-    .kv li.empty { opacity: 0.5; justify-content: flex-start; }
-    .refresh { font-size: 0.74rem; opacity: 0.6; }
+    .kv li.empty { color: #595959; justify-content: flex-start; }
+    .refresh { font-size: 0.74rem; color: #595959; }
     hr { border: 0; border-top: 1px solid #111; margin: 32px 0 8px; }
   </style>
 </head>
 <body>
 <main>
-  <div class="row" style="justify-content:space-between;margin-bottom:24px"><nav style="display:flex;gap:16px;font-size:0.8rem"><a href="/orders.html" style="color:#111;text-decoration:none;opacity:0.55">Orders</a><a href="/list.html" style="color:#111;text-decoration:none;font-weight:400">Sign-ups &amp; visits</a></nav><button type="button" class="logout refresh" hidden>Log out</button></div>
+  <div class="row" style="justify-content:space-between;margin-bottom:24px"><nav style="display:flex;gap:16px;font-size:0.8rem"><a href="/orders.html" style="color:#595959;text-decoration:none">Orders</a><a href="/list.html" style="color:#111;text-decoration:none;font-weight:400">Sign-ups &amp; visits</a></nav><button type="button" class="logout refresh" hidden>Log out</button></div>
 
   <form class="login" hidden>
     <div class="row">
