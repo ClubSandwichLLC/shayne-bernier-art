@@ -22,8 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      # milkman/ is its own site (milkman.shaynebernier.com on Vercel); keep it off the main one.
+      - run: rsync -a --exclude '.git' --exclude '.github' --exclude 'milkman' ./ _site/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
