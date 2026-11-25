@@ -24,6 +24,13 @@
     li.sent, li.sent a { color: #767676; }
     .tip { font-size: 0.72rem; line-height: 1.6; color: #595959; margin-top: 16px; }
     [hidden] { display: none !important; }
+    .who { display: flex; flex-direction: column; gap: 2px; }
+    .name-btn { text-align: left; padding: 0; font-weight: 400; }
+    .name-btn.empty-name { color: #595959; font-weight: 300; text-decoration: underline; text-underline-offset: 3px; }
+    .name-edit { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: baseline; width: 100%; }
+    .name-edit input { flex: 1 1 120px; min-width: 0; font: inherit; font-size: 16px; border: 0; border-bottom: 1px solid #111; outline: 0; padding: 4px 0; background: transparent; }
+    .name-edit button { padding: 4px 0; }
+    .name-edit .cancel { color: #595959; }
     .stats { margin-bottom: 40px; }
     .figs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 16px; margin-top: 12px; }
     .fig b { display: block; font-weight: 300; font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -103,9 +110,17 @@
     ol.innerHTML = '';
     numbers.forEach(p => {
       const li = document.createElement('li');
+      const s = signups.find(x => x.phone === p) || {};
       const num = document.createElement('span');
-      const who = signups.find(s => s.phone === p)?.name;
-      num.textContent = who ? `${who} · ${pretty(p)}` : pretty(p);
+      num.className = 'who';
+      const nameBtn = document.createElement('button');
+      nameBtn.type = 'button';
+      nameBtn.className = 'name-btn' + (s.name ? '' : ' empty-name');
+      nameBtn.textContent = s.name || 'Add name';
+      nameBtn.addEventListener('click', () => editName(li, s, p));
+      const tel = document.createElement('span');
+      tel.textContent = pretty(p);
+      num.append(nameBtn, tel);
       const a = document.createElement('a');
       a.textContent = 'Text';
       a.href = `sms:${p}?&body=${encodeURIComponent(msg.value)}`;
@@ -115,6 +130,26 @@
     });
     list.querySelector('.count').textContent = `${numbers.length} ${numbers.length === 1 ? 'person' : 'people'}`;
   }
+  // Inline name edit: tap the name, type first and last, Save.
+  function editName(li, s, phone) {
+    const [first = '', ...rest] = (s.name || '').split(' ');
+    const box = document.createElement('form');
+    box.className = 'name-edit';
+    box.innerHTML = '<input placeholder="First name" required><input placeholder="Last name" required><button type="submit">Save</button><button type="button" class="cancel">Cancel</button>';
+    const [fi, la] = box.querySelectorAll('input');
+    fi.value = first; la.value = rest.join(' ');
+    box.querySelector('.cancel').addEventListener('click', render);
+    box.addEventListener('submit', async e => {
+      e.preventDefault();
+      const res = await post('/api/signups', { phone, first: fi.value, last: la.value });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(d.error || 'Could not save.'); return; }
+      s.name = d.name; render();
+    });
+    li.replaceChildren(box);
+    fi.focus();
+  }
+
   msg.addEventListener('input', () => ol.querySelectorAll('a').forEach((a, i) => { a.href = `sms:${numbers[i]}?&body=${encodeURIComponent(msg.value)}`; }));
 
   const post = (url, body = {}) => fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
